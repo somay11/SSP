@@ -9,7 +9,7 @@ import NotesPage from './pages/NotesPage';
 import FocusMode from './components/FocusMode';
 import Toast from './components/Toast';
 import Auth from './pages/Auth';
-import { tasksAPI, notesAPI, timerAPI, streakAPI, aiAPI, authAPI } from './services/api';
+import { tasksAPI, notesAPI, streakAPI, aiAPI, authAPI } from './services/api';
 
 // ── Global Context ─────────────────────────────────────────────────────────────
 export const AppCtx = createContext({});
@@ -86,7 +86,7 @@ export default function App() {
       setLoading(false);
     };
     checkAuth();
-  }, [fetchData]);
+  }, [fetchData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Dark mode
   useEffect(() => {

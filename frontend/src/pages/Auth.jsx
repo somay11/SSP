@@ -3,7 +3,7 @@ import { useApp } from '../App';
 import { authAPI } from '../services/api';
 
 export default function Auth() {
-  const { addToast, setPage } = useApp();
+  const { addToast } = useApp();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });

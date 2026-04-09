@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, CheckSquare, Timer, Calendar, Settings, Bell, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Timer, Calendar, Bell, Moon, Sun } from 'lucide-react';
 
 const Navbar = ({ activePage, onChangePage, onEnterFocus }) => {
   const [isDark, setIsDark] = useState(true);

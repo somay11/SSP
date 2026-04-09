@@ -19,7 +19,7 @@ export default function Pomodoro() {
       handleSessionComplete();
     }
     return () => clearInterval(interval);
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSessionComplete = async () => {
     try {
