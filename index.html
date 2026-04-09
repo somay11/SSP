@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Study Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --surface3: #22223a;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #7c6aff;
+    --accent2: #a855f7;
+    --accent3: #06d6a0;
+    --accent4: #f59e0b;
+    --accent5: #f43f5e;
+    --text: #f0f0ff;
+    --text2: #9898b8;
+    --text3: #5a5a80;
+    --glow: rgba(124,106,255,0.15);
+    --glow2: rgba(168,85,247,0.1);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --sidebar-w: 260px;
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  [data-theme="light"] {
+    --bg: #f4f3ff;
+    --surface: #ffffff;
+    --surface2: #f0effe;
+    --surface3: #e8e6fd;
+    --border: rgba(0,0,0,0.06);
+    --border2: rgba(0,0,0,0.1);
+    --text: #0d0d1a;
+    --text2: #5050780;
+    --text3: #9090b0;
+    --glow: rgba(124,106,255,0.08);
+    --glow2: rgba(168,85,247,0.06);
+    --text2: #505070;
+    --text3: #9090b0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 10px; }
+
+  /* Layout */
+  .app { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transition: transform 0.3s ease;
+  }
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 15px var(--glow);
+  }
+  .logo-text { font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 10px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+
+  .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+  .nav-section-label {
+    font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text3); padding: 8px 8px 6px; margin-top: 8px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: var(--radius-xs);
+    cursor: pointer; transition: var(--transition);
+    color: var(--text2); font-size: 13.5px; font-weight: 500;
+    margin-bottom: 2px; position: relative;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active {
+    background: linear-gradient(135deg, rgba(124,106,255,0.2), rgba(168,85,247,0.15));
+    color: var(--accent); border: 1px solid rgba(124,106,255,0.2);
+  }
+  .nav-item .badge {
+    margin-left: auto; background: var(--accent5);
+    color: white; font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 20px; min-width: 18px; text-align: center;
+  }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .streak-badge {
+    background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(251,191,36,0.1));
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .streak-fire { font-size: 22px; }
+  .streak-info { flex: 1; }
+  .streak-num { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--accent4); line-height: 1; }
+  .streak-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+
+  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(10px);
+  }
+  .topbar-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; flex: 1; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    padding: 8px 16px; border-radius: var(--radius-xs);
+    border: none; cursor: pointer; font-family: var(--font-body);
+    font-size: 13px; font-weight: 500; transition: var(--transition);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    box-shadow: 0 4px 15px var(--glow);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--glow); }
+  .btn-ghost {
+    background: var(--surface2); color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--surface3); color: var(--text); }
+  .btn-icon {
+    width: 34px; height: 34px; padding: 0;
+    background: var(--surface2); color: var(--text2);
+    border: 1px solid var(--border); border-radius: var(--radius-xs);
+    font-size: 16px; justify-content: center;
+  }
+  .btn-icon:hover { background: var(--surface3); color: var(--text); }
+  .btn-danger { background: rgba(244,63,94,0.15); color: var(--accent5); border: 1px solid rgba(244,63,94,0.2); }
+  .btn-danger:hover { background: rgba(244,63,94,0.25); }
+  .btn-success { background: rgba(6,214,160,0.15); color: var(--accent3); border: 1px solid rgba(6,214,160,0.2); }
+  .btn-success:hover { background: rgba(6,214,160,0.25); }
+
+  .page-content { padding: 28px 32px; flex: 1; overflow-y: auto; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: var(--transition);
+  }
+  .card:hover { border-color: var(--border2); }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .card-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+  .card-subtitle { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  /* Stat Cards */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+  }
+  .stat-card.blue::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .stat-card.green::before { background: linear-gradient(90deg, var(--accent3), #34d399); }
+  .stat-card.yellow::before { background: linear-gradient(90deg, var(--accent4), #fbbf24); }
+  .stat-card.red::before { background: linear-gradient(90deg, var(--accent5), #fb7185); }
+  .stat-icon { font-size: 24px; margin-bottom: 10px; }
+  .stat-num { font-family: var(--font-display); font-size: 28px; font-weight: 800; line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--text3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-delta { font-size: 11px; color: var(--accent3); margin-top: 6px; }
+
+  /* Progress Bar */
+  .progress-bar {
+    height: 6px; background: var(--surface3);
+    border-radius: 10px; overflow: hidden; margin-top: 8px;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 10px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-fill.green { background: linear-gradient(90deg, var(--accent3), #34d399); }
+  .progress-fill.yellow { background: linear-gradient(90deg, var(--accent4), #fbbf24); }
+
+  /* Dashboard Grid */
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr 340px; gap: 16px; }
+  .dash-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+
+  /* Quote Card */
+  .quote-card {
+    background: linear-gradient(135deg, rgba(124,106,255,0.12), rgba(168,85,247,0.08));
+    border: 1px solid rgba(124,106,255,0.2);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative; overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .quote-card::before {
+    content: '"';
+    position: absolute; top: -10px; left: 20px;
+    font-size: 80px; font-family: var(--font-display);
+    color: var(--accent); opacity: 0.15; line-height: 1;
+    font-weight: 800;
+  }
+  .quote-text {
+    font-family: var(--font-display); font-size: 15px; font-weight: 600;
+    line-height: 1.5; color: var(--text); padding-left: 8px;
+  }
+  .quote-author { font-size: 12px; color: var(--text3); margin-top: 8px; padding-left: 8px; }
+
+  /* Tasks */
+  .task-filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); background: transparent; cursor: pointer;
+    color: var(--text2); transition: var(--transition); font-family: var(--font-body);
+  }
+  .filter-btn:hover { background: var(--surface2); color: var(--text); }
+  .filter-btn.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white; border-color: transparent;
+  }
+
+  .task-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: var(--transition);
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .task-item:hover { border-color: var(--border2); transform: translateX(2px); }
+  .task-item.completed { opacity: 0.5; }
+  .task-item.completed .task-name { text-decoration: line-through; color: var(--text3); }
+
+  .task-check {
+    width: 20px; height: 20px; min-width: 20px;
+    border-radius: 6px; border: 2px solid var(--border2);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: var(--transition); margin-top: 1px; background: transparent;
+  }
+  .task-check.checked {
+    background: linear-gradient(135deg, var(--accent3), #34d399);
+    border-color: var(--accent3);
+  }
+  .task-check.checked::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+
+  .task-content { flex: 1; min-width: 0; }
+  .task-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .task-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tag {
+    padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.3px; text-transform: uppercase;
+  }
+  .tag-high { background: rgba(244,63,94,0.15); color: var(--accent5); }
+  .tag-medium { background: rgba(245,158,11,0.15); color: var(--accent4); }
+  .tag-low { background: rgba(6,214,160,0.15); color: var(--accent3); }
+  .tag-date { background: var(--surface2); color: var(--text3); font-size: 11px; }
+  .task-actions { display: flex; gap: 4px; opacity: 0; transition: var(--transition); }
+  .task-item:hover .task-actions { opacity: 1; }
+
+  /* Subtask */
+  .subtask-list { margin-top: 10px; padding-left: 4px; }
+  .subtask-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 0; font-size: 12.5px; color: var(--text2);
+  }
+  .subtask-check {
+    width: 15px; height: 15px; min-width: 15px;
+    border-radius: 4px; border: 1.5px solid var(--border2);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: var(--transition); background: transparent;
+  }
+  .subtask-check.checked {
+    background: var(--accent3); border-color: var(--accent3);
+  }
+  .subtask-check.checked::after { content: '✓'; color: white; font-size: 9px; font-weight: 700; }
+  .subtask-progress { margin-top: 8px; }
+  .subtask-progress-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+
+  /* Pomodoro */
+  .pomodoro-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px 20px;
+  }
+  .pomodoro-mode-toggle {
+    display: flex; gap: 4px;
+    background: var(--surface2); border-radius: 10px; padding: 4px;
+    margin-bottom: 32px;
+  }
+  .mode-btn {
+    padding: 7px 16px; border-radius: 7px; border: none;
+    font-family: var(--font-body); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: var(--transition); color: var(--text2);
+    background: transparent;
+  }
+  .mode-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+  .timer-ring-wrap { position: relative; width: 220px; height: 220px; margin-bottom: 28px; }
+  .timer-ring {
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+  .timer-ring-bg { fill: none; stroke: var(--surface3); stroke-width: 8; }
+  .timer-ring-progress {
+    fill: none; stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+  }
+  .timer-display {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .timer-time {
+    font-family: var(--font-display); font-size: 44px; font-weight: 800;
+    letter-spacing: -2px; line-height: 1;
+  }
+  .timer-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }
+  .timer-controls { display: flex; gap: 12px; align-items: center; }
+  .timer-btn-main {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 50%; cursor: pointer;
+    font-size: 20px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px var(--glow); transition: var(--transition); color: white;
+  }
+  .timer-btn-main:hover { transform: scale(1.05); box-shadow: 0 6px 25px var(--glow); }
+  .sessions-row { display: flex; gap: 6px; margin-top: 20px; }
+  .session-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--surface3); transition: var(--transition);
+  }
+  .session-dot.done { background: var(--accent); }
+
+  /* Calendar */
+  .calendar-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .cal-nav { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; cursor: pointer; color: var(--text2); transition: var(--transition); }
+  .cal-nav:hover { background: var(--surface3); color: var(--text); }
+  .cal-month { font-family: var(--font-display); font-size: 18px; font-weight: 700; flex: 1; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day-header { font-size: 11px; font-weight: 600; color: var(--text3); text-align: center; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border-radius: 8px; cursor: pointer; transition: var(--transition);
+    position: relative; font-size: 13px; font-weight: 500;
+    color: var(--text2); gap: 2px;
+  }
+  .cal-day:hover { background: var(--surface2); color: var(--text); }
+  .cal-day.today { background: rgba(124,106,255,0.2); color: var(--accent); font-weight: 700; }
+  .cal-day.selected { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+  .cal-day.other-month { opacity: 0.25; }
+  .cal-day-dots { display: flex; gap: 2px; }
+  .cal-dot { width: 4px; height: 4px; border-radius: 50%; }
+
+  /* Notes */
+  .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .note-card {
+    border-radius: var(--radius-sm);
+    padding: 16px; border: 1px solid var(--border);
+    cursor: pointer; transition: var(--transition);
+    position: relative;
+  }
+  .note-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+  .note-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .note-body { font-size: 13px; color: var(--text2); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .note-date { font-size: 11px; color: var(--text3); margin-top: 10px; }
+  .note-color-0 { background: rgba(124,106,255,0.08); border-color: rgba(124,106,255,0.2); }
+  .note-color-1 { background: rgba(6,214,160,0.08); border-color: rgba(6,214,160,0.2); }
+  .note-color-2 { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); }
+  .note-color-3 { background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.2); }
+  .note-color-4 { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.2); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.15s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: 100%; max-width: 520px;
+    animation: slideUp 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    max-height: 90vh; overflow-y: auto;
+  }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+  .modal-close { background: var(--surface2); border: 1px solid var(--border); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; color: var(--text2); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .modal-close:hover { background: var(--surface3); }
+
+  /* Form */
+  .form-group { margin-bottom: 18px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+  .form-input {
+    width: 100%; padding: 10px 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-xs); color: var(--text);
+    font-family: var(--font-body); font-size: 14px;
+    transition: var(--transition); outline: none;
+  }
+  .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,106,255,0.15); }
+  .form-input::placeholder { color: var(--text3); }
+  textarea.form-input { resize: vertical; min-height: 80px; }
+  select.form-input { cursor: pointer; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  /* Focus Mode */
+  .focus-mode {
+    position: fixed; inset: 0; z-index: 300;
+    background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .focus-mode .focus-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(124,106,255,0.08) 0%, transparent 70%);
+  }
+  .focus-content { position: relative; z-index: 1; text-align: center; }
+
+  /* Bar chart */
+  .bar-chart { display: flex; gap: 8px; align-items: flex-end; height: 100px; }
+  .bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar-fill {
+    width: 100%; border-radius: 4px 4px 0 0;
+    background: linear-gradient(180deg, var(--accent), rgba(124,106,255,0.4));
+    transition: height 0.6s cubic-bezier(0.4,0,0.2,1);
+    min-height: 4px;
+  }
+  .bar-label { font-size: 10px; color: var(--text3); }
+
+  /* AI Suggestion */
+  .ai-card {
+    background: linear-gradient(135deg, rgba(6,214,160,0.08), rgba(59,130,246,0.06));
+    border: 1px solid rgba(6,214,160,0.2);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .ai-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .ai-badge { background: linear-gradient(135deg, var(--accent3), #34d399); color: white; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .ai-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .ai-item:last-child { border-bottom: none; }
+  .ai-num { font-family: var(--font-display); font-weight: 700; color: var(--accent); font-size: 16px; line-height: 1.2; }
+
+  /* Notification dot */
+  .notif-dot { width: 8px; height: 8px; background: var(--accent5); border-radius: 50%; position: absolute; top: 6px; right: 6px; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text3); }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-title { font-size: 15px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+  .empty-text { font-size: 13px; }
+
+  /* Toast */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 500; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    animation: slideUp 0.25s ease;
+    font-size: 13px; font-weight: 500; min-width: 260px;
+  }
+  .toast.success { border-left: 3px solid var(--accent3); }
+  .toast.error { border-left: 3px solid var(--accent5); }
+  .toast.info { border-left: 3px solid var(--accent); }
+
+  /* Weekly view */
+  .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .week-day-col { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 8px; min-height: 120px; }
+  .week-day-header { font-size: 11px; text-align: center; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .week-day-num { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .week-task-chip {
+    font-size: 10px; padding: 3px 6px; border-radius: 4px;
+    margin-bottom: 4px; font-weight: 500;
+    background: rgba(124,106,255,0.15); color: var(--accent);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    cursor: pointer;
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .dash-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 900px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .page-content { padding: 20px 16px; }
+    .topbar { padding: 12px 16px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .dash-grid, .dash-grid-2 { grid-template-columns: 1fr; }
+    .week-grid { grid-template-columns: repeat(7, minmax(80px, 1fr)); overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── Data Store (localStorage mock API) ───────────────────────────────────────
+const DB = {
+  get: (key, def) => { try { return JSON.parse(localStorage.getItem('ssp_' + key)) ?? def; } catch { return def; } },
+  set: (key, val) => localStorage.setItem('ssp_' + key, JSON.stringify(val)),
+};
+
+const QUOTES = [
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "Study hard what interests you the most in the most undisciplined, irreverent way.", author: "Richard Feynman" },
+  { text: "The beautiful thing about learning is that nobody can take it away from you.", author: "B.B. King" },
+  { text: "Education is the passport to the future.", author: "Malcolm X" },
+  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin" },
+  { text: "The more that you read, the more things you will know.", author: "Dr. Seuss" },
+  { text: "Learning never exhausts the mind.", author: "Leonardo da Vinci" },
+  { text: "The capacity to learn is a gift; the ability to learn is a skill.", author: "Brian Herbert" },
+];
+
+const AI_SUGGESTIONS = [
+  ["Review your highest-priority task first — tackle 'High' items before 10 AM when focus is peak.","Spend the first pomodoro on your most deadline-critical task.","Use breaks to review notes, not social media — it boosts retention by 23%."],
+  ["You have tasks due soon — consider splitting them into 3 smaller subtasks each.","Batch similar subjects together for deeper focus sessions.","Your evening sessions are most productive — schedule complex topics then."],
+  ["Start with a 5-minute review of yesterday's notes before each session.","Alternate between hard and easy tasks to maintain momentum.","Set a clear goal before each pomodoro for 40% better completion rates."],
+];
+
+const COLORS = ['#7c6aff','#06d6a0','#f59e0b','#f43f5e','#3b82f6','#a855f7'];
+
+// ─── Toast System ─────────────────────────────────────────────────────────────
+const ToastCtx = React.createContext({});
+
+// ─── Main App ─────────────────────────────────────────────────────────────────
+function App() {
+  const [page, setPage] = useState('dashboard');
+  const [darkMode, setDarkMode] = useState(DB.get('dark', true));
+  const [focusMode, setFocusMode] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Tasks
+  const [tasks, setTasks] = useState(() => DB.get('tasks', [
+    { id: '1', name: 'Read Chapter 5 - Calculus', priority: 'High', deadline: new Date(Date.now()+86400000).toISOString().split('T')[0], completed: false, subtasks: [{id:'s1',text:'Read pages 120-140',done:false},{id:'s2',text:'Solve exercises 5.1-5.3',done:true}], date: new Date().toISOString().split('T')[0], color: 0 },
+    { id: '2', name: 'Write Essay on Quantum Computing', priority: 'Medium', deadline: new Date(Date.now()+3*86400000).toISOString().split('T')[0], completed: false, subtasks: [{id:'s3',text:'Research intro',done:false},{id:'s4',text:'Draft outline',done:false}], date: new Date(Date.now()+86400000).toISOString().split('T')[0], color: 1 },
+    { id: '3', name: 'Practice German Vocabulary', priority: 'Low', deadline: new Date(Date.now()+7*86400000).toISOString().split('T')[0], completed: true, subtasks: [], date: new Date().toISOString().split('T')[0], color: 2 },
+  ]));
+  // Notes
+  const [notes, setNotes] = useState(() => DB.get('notes', [
+    { id: 'n1', title: 'Calculus Key Formulas', body: 'Integration by parts: ∫u dv = uv − ∫v du\nChain rule: d/dx[f(g(x))] = f\'(g(x))·g\'(x)', date: new Date().toLocaleDateString(), color: 0 },
+    { id: 'n2', title: 'German Vocab', body: 'der Apfel = apple\ndie Katze = cat\ndas Buch = book\nlernen = to learn', date: new Date().toLocaleDateString(), color: 2 },
+  ]));
+  // Study hours per day (last 7 days)
+  const [studyHours, setStudyHours] = useState(() => DB.get('studyHours', [1.5, 2, 0.5, 3, 2.5, 1, 0]));
+  // Streak
+  const [streak, setStreak] = useState(() => DB.get('streak', 7));
+  // Timer sessions
+  const [timerSessions, setTimerSessions] = useState(() => DB.get('timerSessions', 2));
+
+  const addToast = useCallback((msg, type = 'info') => {
+    const id = Date.now();
+    setToasts(t => [...t, { id, msg, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3500);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    DB.set('dark', darkMode);
+  }, [darkMode]);
+
+  useEffect(() => { DB.set('tasks', tasks); }, [tasks]);
+  useEffect(() => { DB.set('notes', notes); }, [notes]);
+  useEffect(() => { DB.set('studyHours', studyHours); }, [studyHours]);
+
+  const toggleTask = (id) => {
+    setTasks(ts => ts.map(t => t.id === id ? {...t, completed: !t.completed} : t));
+    addToast('Task updated!', 'success');
+  };
+  const deleteTask = (id) => {
+    setTasks(ts => ts.filter(t => t.id !== id));
+    addToast('Task deleted.', 'error');
+  };
+  const toggleSubtask = (taskId, subId) => {
+    setTasks(ts => ts.map(t => t.id === taskId ? {
+      ...t, subtasks: t.subtasks.map(s => s.id === subId ? {...s, done: !s.done} : s)
+    } : t));
+  };
+
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.completed).length;
+  const pendingTasks = totalTasks - completedTasks;
+  const todayProgress = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const quote = QUOTES[new Date().getDay() % QUOTES.length];
+  const aiSuggestions = AI_SUGGESTIONS[streak % 3];
+
+  const pages = {
+    dashboard: <Dashboard tasks={tasks} completedTasks={completedTasks} pendingTasks={pendingTasks} totalTasks={totalTasks} todayProgress={todayProgress} quote={quote} studyHours={studyHours} aiSuggestions={aiSuggestions} streak={streak} timerSessions={timerSessions} />,
+    tasks: <TasksPage tasks={tasks} setTasks={setTasks} toggleTask={toggleTask} deleteTask={deleteTask} toggleSubtask={toggleSubtask} addToast={addToast} />,
+    pomodoro: <PomodoroPage focusMode={focusMode} setFocusMode={setFocusMode} timerSessions={timerSessions} setTimerSessions={setTimerSessions} studyHours={studyHours} setStudyHours={setStudyHours} addToast={addToast} />,
+    calendar: <CalendarPage tasks={tasks} setTasks={setTasks} addToast={addToast} />,
+    notes: <NotesPage notes={notes} setNotes={setNotes} addToast={addToast} />,
+  };
+
+  const navItems = [
+    { id: 'dashboard', icon: '◈', label: 'Dashboard' },
+    { id: 'tasks', icon: '◻', label: 'Tasks', badge: pendingTasks > 0 ? pendingTasks : null },
+    { id: 'pomodoro', icon: '◉', label: 'Pomodoro' },
+    { id: 'calendar', icon: '▦', label: 'Schedule' },
+    { id: 'notes', icon: '◧', label: 'Notes', badge: notes.length > 0 ? null : null },
+  ];
+
+  return (
+    <ToastCtx.Provider value={addToast}>
+    <div className="app">
+      {/* Sidebar */}
+      <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo">
+          <div className="logo-mark">
+            <div className="logo-icon">📚</div>
+            <div>
+              <div className="logo-text">StudyPlanner</div>
+              <div className="logo-sub">Smart Learning</div>
+            </div>
+          </div>
+        </div>
+        <nav className="sidebar-nav">
+          <div className="nav-section-label">Main</div>
+          {navItems.map(item => (
+            <div key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => { setPage(item.id); setSidebarOpen(false); }}>
+              <span className="nav-icon">{item.icon}</span>
+              {item.label}
+              {item.badge && <span className="badge">{item.badge}</span>}
+            </div>
+          ))}
+        </nav>
+        <div className="sidebar-footer">
+          <div className="streak-badge">
+            <div className="streak-fire">🔥</div>
+            <div className="streak-info">
+              <div className="streak-num">{streak}</div>
+              <div className="streak-label">Day Streak</div>
+            </div>
+          </div>
+          <button className="btn btn-ghost" style={{width:'100%', justifyContent:'center'}} onClick={() => setDarkMode(d => !d)}>
+            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="main">
+        <div className="topbar">
+          <button className="btn btn-icon" style={{display:'none'}} onClick={() => setSidebarOpen(s => !s)}>☰</button>
+          <div className="topbar-title">{navItems.find(n => n.id === page)?.label || page}</div>
+          <div className="topbar-actions">
+            <button className="btn btn-icon" title="Focus Mode" onClick={() => setFocusMode(true)}>🎯</button>
+            <button className="btn btn-icon" title="Toggle Dark Mode" onClick={() => setDarkMode(d => !d)}>{darkMode ? '☀️' : '🌙'}</button>
+            <div style={{width:34,height:34,borderRadius:'50%',background:'linear-gradient(135deg,var(--accent),var(--accent2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:700,color:'white'}}>S</div>
+          </div>
+        </div>
+        <div className="page-content">
+          {pages[page] || pages.dashboard}
+        </div>
+      </div>
+
+      {/* Focus Mode Overlay */}
+      {focusMode && <FocusModeOverlay onClose={() => setFocusMode(false)} />}
+
+      {/* Toasts */}
+      <div className="toast-container">
+        {toasts.map(t => (
+          <div key={t.id} className={`toast ${t.type}`}>
+            <span>{t.type === 'success' ? '✅' : t.type === 'error' ? '❌' : 'ℹ️'}</span>
+            {t.msg}
+          </div>
+        ))}
+      </div>
+    </div>
+    </ToastCtx.Provider>
+  );
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+function Dashboard({ tasks, completedTasks, pendingTasks, totalTasks, todayProgress, quote, studyHours, aiSuggestions, streak, timerSessions }) {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const maxH = Math.max(...studyHours, 1);
+  const urgentTasks = tasks.filter(t => !t.completed && t.priority === 'High');
+  const totalStudied = studyHours.reduce((a,b) => a+b, 0).toFixed(1);
+
+  return (
+    <div>
+      <div className="quote-card">
+        <div className="quote-text">"{quote.text}"</div>
+        <div className="quote-author">— {quote.author}</div>
+      </div>
+
+      <div className="stats-grid">
+        <div className="stat-card blue">
+          <div className="stat-icon">📋</div>
+          <div className="stat-num">{totalTasks}</div>
+          <div className="stat-label">Total Tasks</div>
+          <div className="stat-delta">↑ All tasks tracked</div>
+        </div>
+        <div className="stat-card green">
+          <div className="stat-icon">✅</div>
+          <div className="stat-num">{completedTasks}</div>
+          <div className="stat-label">Completed</div>
+          <div className="stat-delta">🎉 Great work!</div>
+        </div>
+        <div className="stat-card yellow">
+          <div className="stat-icon">⏳</div>
+          <div className="stat-num">{pendingTasks}</div>
+          <div className="stat-label">Pending</div>
+          <div className="stat-delta">⚡ Stay focused</div>
+        </div>
+        <div className="stat-card red">
+          <div className="stat-icon">🕐</div>
+          <div className="stat-num">{totalStudied}h</div>
+          <div className="stat-label">Hours Studied</div>
+          <div className="stat-delta">📈 This week</div>
+        </div>
+      </div>
+
+      {/* Daily Progress */}
+      <div className="card" style={{marginBottom:16}}>
+        <div className="card-header">
+          <div>
+            <div className="card-title">Today's Progress</div>
+            <div className="card-subtitle">Daily task completion</div>
+          </div>
+          <span style={{fontFamily:'var(--font-display)',fontSize:22,fontWeight:800,color:'var(--accent)'}}>{todayProgress}%</span>
+        </div>
+        <div className="progress-bar" style={{height:10}}>
+          <div className="progress-fill" style={{width:`${todayProgress}%`}}></div>
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',marginTop:8,fontSize:12,color:'var(--text3)'}}>
+          <span>{completedTasks} done</span><span>{pendingTasks} remaining</span>
+        </div>
+      </div>
+
+      <div className="dash-grid">
+        {/* Study Hours Chart */}
+        <div className="card">
+          <div className="card-header">
+            <div>
+              <div className="card-title">Study Hours</div>
+              <div className="card-subtitle">Last 7 days</div>
+            </div>
+          </div>
+          <div className="bar-chart">
+            {studyHours.map((h, i) => (
+              <div className="bar-item" key={i}>
+                <div className="bar-fill" style={{height:`${(h/maxH)*80}px`}}></div>
+                <div className="bar-label">{days[i]}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* AI Study Suggestion */}
+        <div className="ai-card">
+          <div className="ai-header">
+            <div className="card-title">🤖 AI Study Plan</div>
+            <span className="ai-badge">Smart</span>
+          </div>
+          {aiSuggestions.map((s, i) => (
+            <div className="ai-item" key={i}>
+              <div className="ai-num">{i+1}</div>
+              <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.5}}>{s}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Streak & Pomodoro */}
+        <div style={{display:'flex',flexDirection:'column',gap:16}}>
+          <div className="card" style={{textAlign:'center',padding:'24px 20px'}}>
+            <div style={{fontSize:48,marginBottom:8}}>🔥</div>
+            <div style={{fontFamily:'var(--font-display)',fontSize:36,fontWeight:800,color:'var(--accent4)'}}>{streak}</div>
+            <div style={{fontSize:12,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'1px',marginTop:4}}>Day Study Streak</div>
+            <div style={{marginTop:12}}>
+              <div className="progress-bar">
+                <div className="progress-fill yellow" style={{width:`${Math.min(streak/30*100,100)}%`}}></div>
+              </div>
+              <div style={{fontSize:11,color:'var(--text3)',marginTop:6}}>{30-streak > 0 ? `${30-streak} days to 30-day badge` : '🏆 30-day badge earned!'}</div>
+            </div>
+          </div>
+          <div className="card" style={{textAlign:'center',padding:'20px'}}>
+            <div style={{fontSize:28,marginBottom:6}}>🍅</div>
+            <div style={{fontFamily:'var(--font-display)',fontSize:28,fontWeight:800,color:'var(--accent)'}}>{timerSessions}</div>
+            <div style={{fontSize:12,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'1px'}}>Pomodoros Today</div>
+            <div style={{fontSize:11,color:'var(--accent3)',marginTop:6}}>≈ {(timerSessions*25/60).toFixed(1)}h focused</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Urgent Tasks */}
+      {urgentTasks.length > 0 && (
+        <div className="card" style={{marginTop:16}}>
+          <div className="card-header">
+            <div className="card-title">🚨 Urgent Tasks</div>
+            <span style={{fontSize:11,color:'var(--accent5)'}}>{urgentTasks.length} high priority</span>
+          </div>
+          {urgentTasks.slice(0,3).map(t => (
+            <div key={t.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid var(--border)'}}>
+              <span style={{color:'var(--accent5)'}}>⚠️</span>
+              <span style={{flex:1,fontSize:13,fontWeight:500}}>{t.name}</span>
+              <span className="tag tag-date">Due {t.deadline}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Tasks Page ───────────────────────────────────────────────────────────────
+function TasksPage({ tasks, setTasks, toggleTask, deleteTask, toggleSubtask, addToast }) {
+  const [filter, setFilter] = useState('all');
+  const [showModal, setShowModal] = useState(false);
+  const [editTask, setEditTask] = useState(null);
+  const [expandedTask, setExpandedTask] = useState(null);
+  const [newSubtask, setNewSubtask] = useState('');
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const filtered = tasks.filter(t => {
+    if (filter === 'today') return t.date === today;
+    if (filter === 'upcoming') return !t.completed && t.deadline > today;
+    if (filter === 'completed') return t.completed;
+    if (filter === 'high') return t.priority === 'High' && !t.completed;
+    return true;
+  });
+
+  const openAdd = () => { setEditTask(null); setShowModal(true); };
+  const openEdit = (t) => { setEditTask(t); setShowModal(true); };
+
+  const saveTask = (taskData) => {
+    if (editTask) {
+      setTasks(ts => ts.map(t => t.id === editTask.id ? { ...t, ...taskData } : t));
+      addToast('Task updated!', 'success');
+    } else {
+      const newTask = { ...taskData, id: Date.now().toString(), completed: false, subtasks: [], date: today, color: Math.floor(Math.random()*5) };
+      setTasks(ts => [...ts, newTask]);
+      addToast('Task added!', 'success');
+    }
+    setShowModal(false);
+  };
+
+  const addSubtask = (taskId) => {
+    if (!newSubtask.trim()) return;
+    setTasks(ts => ts.map(t => t.id === taskId ? {
+      ...t, subtasks: [...t.subtasks, { id: Date.now().toString(), text: newSubtask.trim(), done: false }]
+    } : t));
+    setNewSubtask('');
+    addToast('Subtask added!', 'success');
+  };
+
+  const deleteSubtask = (taskId, subId) => {
+    setTasks(ts => ts.map(t => t.id === taskId ? {
+      ...t, subtasks: t.subtasks.filter(s => s.id !== subId)
+    } : t));
+  };
+
+  return (
+    <div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}}>
+        <div>
+          <h2 style={{fontFamily:'var(--font-display)',fontSize:22,fontWeight:700}}>Task Manager</h2>
+          <p style={{color:'var(--text3)',fontSize:13,marginTop:2}}>{tasks.length} total · {tasks.filter(t=>t.completed).length} done</p>
+        </div>
+        <button className="btn btn-primary" onClick={openAdd}>+ Add Task</button>
+      </div>
+
+      <div className="task-filters">
+        {[['all','All'],['today','Today'],['upcoming','Upcoming'],['completed','Completed'],['high','High Priority']].map(([val,label]) => (
+          <button key={val} className={`filter-btn ${filter===val?'active':''}`} onClick={() => setFilter(val)}>{label}</button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">📭</div>
+          <div className="empty-title">No tasks here</div>
+          <div className="empty-text">Add a new task to get started!</div>
+        </div>
+      ) : filtered.map(task => {
+        const subtasksDone = task.subtasks.filter(s=>s.done).length;
+        const subtaskPct = task.subtasks.length ? Math.round(subtasksDone/task.subtasks.length*100) : 0;
+        const isExpanded = expandedTask === task.id;
+
+        return (
+          <div key={task.id}>
+            <div className={`task-item ${task.completed ? 'completed' : ''}`}>
+              <div className={`task-check ${task.completed ? 'checked' : ''}`} onClick={() => toggleTask(task.id)}></div>
+              <div className="task-content" onClick={() => setExpandedTask(isExpanded ? null : task.id)} style={{cursor:'pointer'}}>
+                <div className="task-name">{task.name}</div>
+                <div className="task-meta">
+                  <span className={`tag tag-${task.priority?.toLowerCase()}`}>{task.priority}</span>
+                  {task.deadline && <span className="tag tag-date">📅 {task.deadline}</span>}
+                  {task.subtasks.length > 0 && <span className="tag tag-date">◻ {subtasksDone}/{task.subtasks.length} subtasks</span>}
+                </div>
+                {task.subtasks.length > 0 && (
+                  <div className="subtask-progress" onClick={e=>e.stopPropagation()}>
+                    <div className="progress-bar" style={{marginTop:8}}>
+                      <div className="progress-fill green" style={{width:`${subtaskPct}%`}}></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="task-actions">
+                <button className="btn btn-icon" style={{width:28,height:28,fontSize:12}} onClick={() => openEdit(task)} title="Edit">✏️</button>
+                <button className="btn btn-icon" style={{width:28,height:28,fontSize:12}} onClick={() => deleteTask(task.id)} title="Delete">🗑️</button>
+              </div>
+            </div>
+
+            {isExpanded && (
+              <div style={{background:'var(--surface2)',borderRadius:'0 0 var(--radius-sm) var(--radius-sm)',padding:'12px 16px 14px',marginTop:-6,marginBottom:8,border:'1px solid var(--border)',borderTop:'none'}}>
+                <div style={{fontSize:12,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>Subtasks</div>
+                {task.subtasks.map(sub => (
+                  <div key={sub.id} className="subtask-item">
+                    <div className={`subtask-check ${sub.done?'checked':''}`} onClick={() => toggleSubtask(task.id, sub.id)}></div>
+                    <span style={{flex:1,textDecoration:sub.done?'line-through':'none',color:sub.done?'var(--text3)':'var(--text2)'}}>{sub.text}</span>
+                    <button onClick={() => deleteSubtask(task.id, sub.id)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--text3)',fontSize:14,padding:'0 4px'}}>×</button>
+                  </div>
+                ))}
+                <div style={{display:'flex',gap:8,marginTop:10}}>
+                  <input
+                    className="form-input"
+                    style={{fontSize:12,padding:'6px 10px'}}
+                    placeholder="Add subtask..."
+                    value={newSubtask}
+                    onChange={e => setNewSubtask(e.target.value)}
+                    onKeyDown={e => e.key==='Enter' && addSubtask(task.id)}
+                  />
+                  <button className="btn btn-primary" style={{padding:'6px 12px',fontSize:12}} onClick={() => addSubtask(task.id)}>Add</button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {showModal && <TaskModal task={editTask} onSave={saveTask} onClose={() => setShowModal(false)} />}
+    </div>
+  );
+}
+
+function TaskModal({ task, onSave, onClose }) {
+  const [form, setForm] = useState({
+    name: task?.name || '',
+    priority: task?.priority || 'Medium',
+    deadline: task?.deadline || '',
+  });
+  const set = (k, v) => setForm(f => ({...f, [k]: v}));
+  const valid = form.name.trim();
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div className="modal-title">{task ? 'Edit Task' : 'New Task'}</div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Task Name *</label>
+          <input className="form-input" placeholder="What do you need to study?" value={form.name} onChange={e => set('name', e.target.value)} autoFocus />
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Priority</label>
+            <select className="form-input" value={form.priority} onChange={e => set('priority', e.target.value)}>
+              <option>Low</option><option>Medium</option><option>High</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Deadline</label>
+            <input type="date" className="form-input" value={form.deadline} onChange={e => set('deadline', e.target.value)} />
+          </div>
+        </div>
+        <div className="form-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={() => valid && onSave(form)} disabled={!valid}>
+            {task ? 'Save Changes' : 'Add Task'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Pomodoro ─────────────────────────────────────────────────────────────────
+function PomodoroPage({ timerSessions, setTimerSessions, studyHours, setStudyHours, addToast }) {
+  const [mode, setMode] = useState('focus'); // focus | short | long
+  const DURATIONS = { focus: 25*60, short: 5*60, long: 15*60 };
+  const [timeLeft, setTimeLeft] = useState(DURATIONS.focus);
+  const [running, setRunning] = useState(false);
+  const [cycle, setCycle] = useState(0);
+  const intervalRef = useRef(null);
+  const startTimeRef = useRef(null);
+
+  const duration = DURATIONS[mode];
+  const pct = timeLeft / duration;
+  const circumference = 2 * Math.PI * 90;
+  const offset = circumference * pct;
+
+  useEffect(() => {
+    setTimeLeft(DURATIONS[mode]);
+    setRunning(false);
+    clearInterval(intervalRef.current);
+  }, [mode]);
+
+  useEffect(() => {
+    if (running) {
+      startTimeRef.current = Date.now();
+      intervalRef.current = setInterval(() => {
+        setTimeLeft(t => {
+          if (t <= 1) {
+            clearInterval(intervalRef.current);
+            setRunning(false);
+            if (mode === 'focus') {
+              const newSessions = timerSessions + 1;
+              setTimerSessions(newSessions);
+              const today = new Date().getDay();
+              setStudyHours(h => h.map((v, i) => i === (today === 0 ? 6 : today - 1) ? +(v + 25/60).toFixed(2) : v));
+              addToast('🍅 Pomodoro complete! Take a break.', 'success');
+              setCycle(c => c + 1);
+            } else {
+              addToast('Break over! Time to focus.', 'info');
+            }
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+    } else {
+      clearInterval(intervalRef.current);
+    }
+    return () => clearInterval(intervalRef.current);
+  }, [running]);
+
+  const mins = String(Math.floor(timeLeft / 60)).padStart(2,'0');
+  const secs = String(timeLeft % 60).padStart(2,'0');
+
+  const accentColor = mode === 'focus' ? 'var(--accent)' : mode === 'short' ? 'var(--accent3)' : 'var(--accent4)';
+
+  const sessionDots = Array.from({length: Math.max(timerSessions+1, 4)}, (_, i) => i < timerSessions);
+
+  return (
+    <div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+        <div className="card">
+          <div className="pomodoro-wrap">
+            <div className="pomodoro-mode-toggle">
+              {[['focus','Focus 25m'],['short','Short 5m'],['long','Long 15m']].map(([m, l]) => (
+                <button key={m} className={`mode-btn ${mode===m?'active':''}`} onClick={() => setMode(m)}>{l}</button>
+              ))}
+            </div>
+
+            <div className="timer-ring-wrap">
+              <svg className="timer-ring" viewBox="0 0 200 200">
+                <circle className="timer-ring-bg" cx="100" cy="100" r="90" />
+                <circle
+                  className="timer-ring-progress"
+                  cx="100" cy="100" r="90"
+                  stroke={accentColor}
+                  strokeDasharray={circumference}
+                  strokeDashoffset={circumference - offset}
+                  style={{filter:`drop-shadow(0 0 8px ${accentColor})`}}
+                />
+              </svg>
+              <div className="timer-display">
+                <div className="timer-time" style={{color:accentColor}}>{mins}:{secs}</div>
+                <div className="timer-label">{mode === 'focus' ? '🎯 Focus' : mode === 'short' ? '☕ Short Break' : '🌿 Long Break'}</div>
+              </div>
+            </div>
+
+            <div className="timer-controls">
+              <button className="btn btn-ghost btn-icon" style={{width:42,height:42,fontSize:18,borderRadius:12}} onClick={() => { setTimeLeft(DURATIONS[mode]); setRunning(false); }}>↩</button>
+              <button className="timer-btn-main" onClick={() => setRunning(r => !r)} style={{background:`linear-gradient(135deg,${accentColor},${accentColor}aa)`}}>
+                {running ? '⏸' : '▶'}
+              </button>
+              <button className="btn btn-ghost btn-icon" style={{width:42,height:42,fontSize:18,borderRadius:12}} onClick={() => { setRunning(false); if (mode==='focus') setMode('short'); else setMode('focus'); }}>⏭</button>
+            </div>
+
+            <div className="sessions-row" style={{marginTop:24}}>
+              {sessionDots.map((done, i) => (
+                <div key={i} className={`session-dot ${done?'done':''}`}></div>
+              ))}
+            </div>
+            <div style={{fontSize:12,color:'var(--text3)',marginTop:8}}>{timerSessions} pomodoros today</div>
+          </div>
+        </div>
+
+        <div style={{display:'flex',flexDirection:'column',gap:16}}>
+          <div className="card">
+            <div className="card-title" style={{marginBottom:14}}>Session Stats</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+              {[['🍅','Pomodoros',timerSessions,'today'],['⏱','Focus Time',`${(timerSessions*25/60).toFixed(1)}h`,'earned'],['🔥','Streak',DB.get('streak',7),'days'],['🏆','Best Day','4','sessions']].map(([icon,label,val,sub]) => (
+                <div key={label} style={{background:'var(--surface2)',borderRadius:'var(--radius-sm)',padding:'14px',textAlign:'center'}}>
+                  <div style={{fontSize:24,marginBottom:4}}>{icon}</div>
+                  <div style={{fontFamily:'var(--font-display)',fontSize:22,fontWeight:800,color:'var(--accent)'}}>{val}</div>
+                  <div style={{fontSize:11,color:'var(--text3)',marginTop:2}}>{sub}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-title" style={{marginBottom:12}}>How it works</div>
+            {[['1','Work for 25 minutes without interruption'],['2','Take a 5-minute short break'],['3','Every 4 sessions, take a 15-minute long break'],['4','Repeat and track your progress']].map(([n,t]) => (
+              <div key={n} style={{display:'flex',gap:12,padding:'8px 0',borderBottom:'1px solid var(--border)',fontSize:13}}>
+                <div style={{width:22,height:22,background:'rgba(124,106,255,0.15)',borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'var(--accent)',flexShrink:0}}>{n}</div>
+                <span style={{color:'var(--text2)'}}>{t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Calendar ─────────────────────────────────────────────────────────────────
+function CalendarPage({ tasks, setTasks, addToast }) {
+  const [view, setView] = useState('month');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showAssign, setShowAssign] = useState(false);
+  const [assignTask, setAssignTask] = useState('');
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  const cells = [];
+  for (let i = firstDay - 1; i >= 0; i--) cells.push({ day: daysInPrev - i, month: 'prev' });
+  for (let i = 1; i <= daysInMonth; i++) cells.push({ day: i, month: 'current' });
+  const remaining = 42 - cells.length;
+  for (let i = 1; i <= remaining; i++) cells.push({ day: i, month: 'next' });
+
+  const getDateStr = (cell) => {
+    if (cell.month === 'current') {
+      const m = String(month+1).padStart(2,'0');
+      const d = String(cell.day).padStart(2,'0');
+      return `${year}-${m}-${d}`;
+    }
+    return null;
+  };
+
+  const tasksByDate = tasks.reduce((acc, t) => {
+    if (!acc[t.date]) acc[t.date] = [];
+    acc[t.date].push(t);
+    return acc;
+  }, {});
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const selectedTasks = tasksByDate[selectedDate] || [];
+
+  const assignToDate = () => {
+    if (!assignTask) return;
+    setTasks(ts => ts.map(t => t.id === assignTask ? {...t, date: selectedDate} : t));
+    addToast('Task scheduled!', 'success');
+    setShowAssign(false);
+    setAssignTask('');
+  };
+
+  // Weekly view
+  const getWeekDays = () => {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() - d.getDay());
+    return Array.from({length:7}, (_,i) => {
+      const day = new Date(d);
+      day.setDate(d.getDate() + i);
+      return day;
+    });
+  };
+
+  return (
+    <div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}}>
+        <h2 style={{fontFamily:'var(--font-display)',fontSize:22,fontWeight:700}}>Study Schedule</h2>
+        <div style={{display:'flex',gap:8}}>
+          <div style={{display:'flex',gap:4,background:'var(--surface2)',borderRadius:'var(--radius-xs)',padding:4}}>
+            {['month','week'].map(v => (
+              <button key={v} className={`mode-btn ${view===v?'active':''}`} style={{padding:'5px 12px'}} onClick={() => setView(v)}>{v.charAt(0).toUpperCase()+v.slice(1)}</button>
+            ))}
+          </div>
+          <button className="btn btn-primary" onClick={() => setShowAssign(true)}>+ Schedule</button>
+        </div>
+      </div>
+
+      {view === 'month' ? (
+        <div style={{display:'grid',gridTemplateColumns:'1fr 300px',gap:16}}>
+          <div className="card">
+            <div className="calendar-header">
+              <button className="cal-nav" onClick={() => setCurrentDate(new Date(year, month-1))}>‹</button>
+              <div className="cal-month">{MONTHS[month]} {year}</div>
+              <button className="cal-nav" onClick={() => setCurrentDate(new Date(year, month+1))}>›</button>
+            </div>
+            <div className="calendar-grid">
+              {DAYS.map(d => <div key={d} className="cal-day-header">{d}</div>)}
+              {cells.map((cell, i) => {
+                const ds = getDateStr(cell);
+                const dayTasks = ds ? (tasksByDate[ds] || []) : [];
+                return (
+                  <div key={i}
+                    className={`cal-day ${cell.month!=='current'?'other-month':''} ${ds===todayStr?'today':''} ${ds===selectedDate?'selected':''}`}
+                    onClick={() => ds && setSelectedDate(ds)}
+                  >
+                    {cell.day}
+                    {dayTasks.length > 0 && (
+                      <div className="cal-day-dots">
+                        {dayTasks.slice(0,3).map((t,j) => (
+                          <div key={j} className="cal-dot" style={{background: ds===selectedDate ? 'rgba(255,255,255,0.7)' : COLORS[t.color||0]}}></div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <div>
+                <div className="card-title">{selectedDate}</div>
+                <div className="card-subtitle">{selectedTasks.length} task{selectedTasks.length!==1?'s':''}</div>
+              </div>
+            </div>
+            {selectedTasks.length === 0 ? (
+              <div className="empty-state" style={{padding:'24px 0'}}>
+                <div className="empty-icon" style={{fontSize:32}}>📅</div>
+                <div className="empty-title">No tasks</div>
+                <div className="empty-text">Schedule a task for this day</div>
+              </div>
+            ) : selectedTasks.map(t => (
+              <div key={t.id} style={{display:'flex',gap:10,padding:'10px 0',borderBottom:'1px solid var(--border)',alignItems:'flex-start'}}>
+                <div style={{width:8,height:8,borderRadius:'50%',background:COLORS[t.color||0],marginTop:5,flexShrink:0}}></div>
+                <div>
+                  <div style={{fontSize:13,fontWeight:500,color:t.completed?'var(--text3)':'var(--text)',textDecoration:t.completed?'line-through':''}}>{t.name}</div>
+                  <span className={`tag tag-${t.priority?.toLowerCase()}`} style={{marginTop:4,display:'inline-block'}}>{t.priority}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="card">
+          <div className="calendar-header">
+            <button className="cal-nav" onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate()-7); setCurrentDate(d); }}>‹ Prev</button>
+            <div className="cal-month">Week of {getWeekDays()[0].toLocaleDateString()}</div>
+            <button className="cal-nav" onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate()+7); setCurrentDate(d); }}>Next ›</button>
+          </div>
+          <div className="week-grid">
+            {getWeekDays().map((day, i) => {
+              const ds = day.toISOString().split('T')[0];
+              const dayTasks = tasksByDate[ds] || [];
+              return (
+                <div key={i} className={`week-day-col ${ds===todayStr?'':''}` } style={{background:ds===todayStr?'rgba(124,106,255,0.1)':'var(--surface2)',border:ds===todayStr?'1px solid rgba(124,106,255,0.3)':'1px solid transparent'}}>
+                  <div className="week-day-header">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][day.getDay()]}</div>
+                  <div className="week-day-num" style={{color:ds===todayStr?'var(--accent)':'var(--text)'}}>{day.getDate()}</div>
+                  {dayTasks.map(t => (
+                    <div key={t.id} className="week-task-chip" style={{background:`rgba(${t.color===1?'6,214,160':t.color===2?'245,158,11':t.color===3?'244,63,94':'124,106,255'},0.15)`,color:COLORS[t.color||0]}} title={t.name}>{t.name}</div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {showAssign && (
+        <div className="modal-overlay" onClick={e => e.target===e.currentTarget && setShowAssign(false)}>
+          <div className="modal" style={{maxWidth:400}}>
+            <div className="modal-header">
+              <div className="modal-title">Schedule Task</div>
+              <button className="modal-close" onClick={() => setShowAssign(false)}>×</button>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Date</label>
+              <input type="date" className="form-input" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Task</label>
+              <select className="form-input" value={assignTask} onChange={e => setAssignTask(e.target.value)}>
+                <option value="">Select a task...</option>
+                {tasks.filter(t=>!t.completed).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+            <div className="form-footer">
+              <button className="btn btn-ghost" onClick={() => setShowAssign(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={assignToDate}>Schedule</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Notes ────────────────────────────────────────────────────────────────────
+function NotesPage({ notes, setNotes, addToast }) {
+  const [showModal, setShowModal] = useState(false);
+  const [editNote, setEditNote] = useState(null);
+  const [search, setSearch] = useState('');
+
+  const filtered = notes.filter(n => n.title.toLowerCase().includes(search.toLowerCase()) || n.body.toLowerCase().includes(search.toLowerCase()));
+
+  const saveNote = (data) => {
+    if (editNote) {
+      setNotes(ns => ns.map(n => n.id === editNote.id ? {...n, ...data, date: new Date().toLocaleDateString()} : n));
+      addToast('Note updated!', 'success');
+    } else {
+      setNotes(ns => [...ns, { ...data, id: Date.now().toString(), date: new Date().toLocaleDateString(), color: ns.length % 5 }]);
+      addToast('Note saved!', 'success');
+    }
+    setShowModal(false);
+    setEditNote(null);
+  };
+
+  const deleteNote = (id) => {
+    setNotes(ns => ns.filter(n => n.id !== id));
+    addToast('Note deleted.', 'error');
+  };
+
+  return (
+    <div>
+      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
+        <h2 style={{fontFamily:'var(--font-display)',fontSize:22,fontWeight:700,flex:1}}>Study Notes</h2>
+        <input className="form-input" style={{maxWidth:240}} placeholder="🔍 Search notes..." value={search} onChange={e => setSearch(e.target.value)} />
+        <button className="btn btn-primary" onClick={() => { setEditNote(null); setShowModal(true); }}>+ New Note</button>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">📝</div>
+          <div className="empty-title">No notes yet</div>
+          <div className="empty-text">Capture your study ideas and key formulas</div>
+        </div>
+      ) : (
+        <div className="notes-grid">
+          {filtered.map(note => (
+            <div key={note.id} className={`note-card note-color-${note.color}`}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                <div className="note-title">{note.title}</div>
+                <div style={{display:'flex',gap:4}}>
+                  <button onClick={() => { setEditNote(note); setShowModal(true); }} style={{background:'none',border:'none',cursor:'pointer',color:'var(--text3)',fontSize:13,padding:'0 3px'}}>✏️</button>
+                  <button onClick={() => deleteNote(note.id)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--text3)',fontSize:13,padding:'0 3px'}}>🗑️</button>
+                </div>
+              </div>
+              <div className="note-body">{note.body}</div>
+              <div className="note-date">📅 {note.date}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showModal && <NoteModal note={editNote} onSave={saveNote} onClose={() => { setShowModal(false); setEditNote(null); }} />}
+    </div>
+  );
+}
+
+function NoteModal({ note, onSave, onClose }) {
+  const [form, setForm] = useState({ title: note?.title || '', body: note?.body || '' });
+  const set = (k,v) => setForm(f => ({...f,[k]:v}));
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target===e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div className="modal-title">{note ? 'Edit Note' : 'New Note'}</div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Title</label>
+          <input className="form-input" placeholder="Note title..." value={form.title} onChange={e => set('title',e.target.value)} autoFocus />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Content</label>
+          <textarea className="form-input" rows={7} placeholder="Write your notes here..." value={form.body} onChange={e => set('body',e.target.value)} style={{minHeight:160}}></textarea>
+        </div>
+        <div className="form-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={() => form.title && onSave(form)}>Save Note</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Focus Mode ───────────────────────────────────────────────────────────────
+function FocusModeOverlay({ onClose }) {
+  const [timeLeft, setTimeLeft] = useState(25*60);
+  const [running, setRunning] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (running) {
+      ref.current = setInterval(() => setTimeLeft(t => { if(t<=1){clearInterval(ref.current);setRunning(false);return 0;} return t-1; }), 1000);
+    } else clearInterval(ref.current);
+    return () => clearInterval(ref.current);
+  }, [running]);
+
+  const mins = String(Math.floor(timeLeft/60)).padStart(2,'0');
+  const secs = String(timeLeft%60).padStart(2,'0');
+  const pct = timeLeft / (25*60);
+  const circumference = 2*Math.PI*120;
+
+  return (
+    <div className="focus-mode">
+      <div className="focus-bg"></div>
+      <button className="btn btn-ghost" style={{position:'absolute',top:24,right:24}} onClick={onClose}>✕ Exit Focus</button>
+      <div className="focus-content">
+        <div style={{marginBottom:16,fontFamily:'var(--font-display)',fontSize:14,letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)'}}>🎯 Deep Focus Mode</div>
+        <div style={{position:'relative',width:280,height:280,margin:'0 auto'}}>
+          <svg viewBox="0 0 280 280" style={{width:'100%',height:'100%',transform:'rotate(-90deg)'}}>
+            <circle cx="140" cy="140" r="120" fill="none" stroke="var(--surface3)" strokeWidth="8"/>
+            <circle cx="140" cy="140" r="120" fill="none" stroke="var(--accent)" strokeWidth="8"
+              strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference*(1-pct)}
+              style={{transition:'stroke-dashoffset 1s linear',filter:'drop-shadow(0 0 12px var(--accent))'}}
+            />
+          </svg>
+          <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',textAlign:'center'}}>
+            <div style={{fontFamily:'var(--font-display)',fontSize:64,fontWeight:800,letterSpacing:'-3px',lineHeight:1,color:'var(--accent)'}}>{mins}:{secs}</div>
+            <div style={{fontSize:13,color:'var(--text3)',marginTop:8,letterSpacing:'1px'}}>FOCUS SESSION</div>
+          </div>
+        </div>
+        <div style={{display:'flex',gap:16,justifyContent:'center',marginTop:32}}>
+          <button onClick={() => { setTimeLeft(25*60); setRunning(false); }} style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:12,width:52,height:52,cursor:'pointer',fontSize:20,color:'var(--text2)'}}>↩</button>
+          <button onClick={() => setRunning(r=>!r)} style={{width:64,height:64,background:`linear-gradient(135deg,var(--accent),var(--accent2))`,border:'none',borderRadius:'50%',cursor:'pointer',fontSize:24,color:'white',boxShadow:'0 6px 30px var(--glow)'}}>
+            {running ? '⏸' : '▶'}
+          </button>
+        </div>
+        <div style={{marginTop:28,color:'var(--text3)',fontSize:13}}>All distractions hidden. You got this! 💪</div>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
